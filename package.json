@@ -1,14 +1,14 @@
 {
-  "name": "huggingface-ai-assistant",
+  "name": "hugging-face-assistant",
   "version": "1.0.0",
-  "description": "Hugging Face AI Assistant deployed on Vercel",
-  "main": "wsgi.py",
+  "description": "Hugging Face AI Assistant",
+  "main": "index.py",
   "scripts": {
-    "start": "python wsgi.py",
-    "dev": "streamlit run app.py",
-    "build": "echo 'Build complete'"
+    "start": "python index.py"
   },
-  "dependencies": {},
+  "dependencies": {
+    "requests": "^2.31.0"
+  },
   "devDependencies": {},
   "keywords": [
     "huggingface",
@@ -20,6 +20,6 @@
   "author": "Maya Ananya",
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": "14.x"
   }
 }

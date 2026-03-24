@@ -65,264 +65,144 @@ class handler(BaseHTTPRequestHandler):
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="font-semibold mb-2">🔑 API Key</h3>
-                    <input type="password" id="apiKey" placeholder="Enter HF API Key" 
-                           class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="font-semibold mb-2">🤖 Model</h3>
-                    <select id="model" class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="deepseek-ai/DeepSeek-R1">DeepSeek-R1</option>
-                        <option value="microsoft/DialoGPT-medium">DialoGPT Medium</option>
-                        <option value="gpt2">GPT-2</option>
-                        <option value="bigscience/bloom">BLOOM</option>
-                    </select>
-                </div>
-                
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h3 class="font-semibold mb-2">⚙️ Temperature</h3>
-                    <input type="range" id="temperature" min="0.1" max="2.0" step="0.1" value="0.7" 
-                           class="w-full">
-                    <span id="tempValue" class="text-sm text-gray-600">0.7</span>
-                </div>
             </div>
-            
-            <div class="chat-container bg-gray-50 rounded-lg p-4 mb-4" id="chatContainer">
-                <div class="text-center text-gray-500 py-8">
-                    <div class="text-4xl mb-4">💬</div>
-                    <p>Start a conversation with the AI assistant!</p>
-                    <p class="text-sm mt-2">Enter your Hugging Face API key above to begin.</p>
-                </div>
-            </div>
-            
-            <div class="flex gap-2">
-                <input type="text" id="messageInput" placeholder="Type your message here..." 
-                       class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button onclick="sendMessage()" id="sendButton"
-                        class="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:opacity-90 transition disabled:opacity-50">
-                    Send
-                </button>
-            </div>
-            
-            <div class="mt-4 text-center">
-                <button onclick="clearChat()" class="text-gray-500 hover:text-gray-700 transition">
-                    🗑️ Clear Chat
-                </button>
-            </div>
-            
-            <div class="mt-6 text-center text-sm text-gray-500">
-                <p>Need an API key? Get one at <a href="https://huggingface.co/settings/tokens" target="_blank" class="text-blue-600 hover:underline">Hugging Face</a></p>
-            </div>
+        </div>
+        
+        <div>
+            <input type="text" id="msg" placeholder="Type message..." style="width: 80%;">
+            <button onclick="send()">Send</button>
         </div>
     </div>
 
     <script>
-        let isLoading = false;
-        
-        // Update temperature display
-        document.getElementById('temperature').addEventListener('input', function(e) {
-            document.getElementById('tempValue').textContent = e.target.value;
-        });
-        
-        // Send message on Enter
-        document.getElementById('messageInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && !isLoading) {
-                sendMessage();
-            }
-        });
-        
-        async function sendMessage() {
-            if (isLoading) return;
+        async function send() {
+            const key = document.getElementById('key').value;
+            const msg = document.getElementById('msg').value;
+            const model = document.getElementById('model').value;
             
-            const messageInput = document.getElementById('messageInput');
-            const message = messageInput.value.trim();
-            
-            if (!message) {
-                alert('Please enter a message');
+            if (!key || !msg) {
+                alert('Enter API key and message');
                 return;
             }
             
-            const apiKey = document.getElementById('apiKey').value;
-            if (!apiKey) {
-                alert('Please enter your Hugging Face API key');
-                return;
-            }
+            const chat = document.getElementById('chat');
             
-            // Set loading state
-            isLoading = true;
-            document.getElementById('sendButton').disabled = true;
+            // Add user message
+            const userMsg = document.createElement('div');
+            userMsg.className = 'msg user';
+            userMsg.innerHTML = '<strong>You:</strong> ' + msg;
+            chat.appendChild(userMsg);
             
-            // Add user message to chat
-            addMessage('user', message);
-            messageInput.value = '';
+            // Clear welcome if exists
+            const welcome = chat.querySelector('div[style*="text-align"]');
+            if (welcome) welcome.remove();
             
             // Show loading
-            const loadingDiv = document.createElement('div');
-            loadingDiv.className = 'text-center py-2';
-            loadingDiv.innerHTML = '<div class="loading"></div> <span class="ml-2">Thinking...</span>';
-            document.getElementById('chatContainer').appendChild(loadingDiv);
+            const loading = document.createElement('div');
+            loading.className = 'msg bot';
+            loading.innerHTML = '<em>Thinking...</em>';
+            chat.appendChild(loading);
             
             try {
-                const response = await fetch('/', {
+                const res = await fetch('/', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        message: message,
-                        apiKey: apiKey,
-                        model: document.getElementById('model').value,
-                        temperature: parseFloat(document.getElementById('temperature').value)
-                    })
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({key, msg, model})
                 });
                 
-                const data = await response.json();
-                
-                // Remove loading
-                loadingDiv.remove();
+                const data = await res.json();
+                loading.remove();
                 
                 if (data.success) {
-                    addMessage('assistant', data.response);
+                    const botMsg = document.createElement('div');
+                    botMsg.className = 'msg bot';
+                    botMsg.innerHTML = '<strong>Bot:</strong> ' + data.response;
+                    chat.appendChild(botMsg);
                 } else {
-                    addMessage('assistant', `❌ Error: ${data.error}`);
+                    const errorMsg = document.createElement('div');
+                    errorMsg.className = 'msg bot';
+                    errorMsg.innerHTML = '<strong>Error:</strong> ' + data.error;
+                    chat.appendChild(errorMsg);
                 }
                 
-            } catch (error) {
-                loadingDiv.remove();
-                addMessage('assistant', `❌ Network Error: ${error.message}`);
-            } finally {
-                // Reset loading state
-                isLoading = false;
-                document.getElementById('sendButton').disabled = false;
+                document.getElementById('msg').value = '';
+                chat.scrollTop = chat.scrollHeight;
+                
+            } catch (err) {
+                loading.remove();
+                const errormsg = document.createElement('div');
+                errormsg.className = 'msg bot';
+                errormsg.innerHTML = '<strong>Network Error:</strong> ' + err.message;
+                chat.appendChild(errormsg);
             }
         }
         
-        function addMessage(role, content) {
-            const chatContainer = document.getElementById('chatContainer');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `p-3 mb-3 rounded-lg ${role === 'user' ? 'user-message' : 'assistant-message'}`;
-            messageDiv.innerHTML = `
-                <div class="font-semibold mb-1">${role === 'user' ? '👤 You' : '🤖 Assistant'}</div>
-                <div>${content}</div>
-            `;
-            
-            // Remove welcome message if it exists
-            const welcomeMsg = chatContainer.querySelector('.text-center.text-gray-500');
-            if (welcomeMsg) {
-                welcomeMsg.remove();
-            }
-            
-            chatContainer.appendChild(messageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-        }
-        
-        function clearChat() {
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.innerHTML = `
-                <div class="text-center text-gray-500 py-8">
-                    <div class="text-4xl mb-4">💬</div>
-                    <p>Start a conversation with the AI assistant!</p>
-                    <p class="text-sm mt-2">Enter your Hugging Face API key above to begin.</p>
-                </div>
-            `;
-        }
+        // Enter key to send
+        document.getElementById('msg').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') send();
+        });
     </script>
 </body>
-</html>
-            '''
-            
-            self.send_response(200, html_content)
-            
-        except Exception as e:
-            error_html = f'''
-<!DOCTYPE html>
-<html>
-<head><title>Error</title></head>
-<body>
-    <h1>Server Error</h1>
-    <p>Error: {str(e)}</p>
-    <p>Please check the deployment logs.</p>
-</body>
-</html>
-            '''
-            self.send_response(500, error_html)
-    
-    def do_POST(self):
-        """Handle chat API requests"""
-        try:
-            content_length = int(self.headers.get('Content-Length', 0))
-            if content_length == 0:
-                self.send_json_response(400, {'success': False, 'error': 'No content received'})
-                return
-                
-            post_data = self.rfile.read(content_length)
-            
-            # Parse JSON data
+</html>'''
+            }
+        
+        elif method == 'POST':
+            # Handle API request
             try:
-                data = json.loads(post_data.decode('utf-8'))
-            except json.JSONDecodeError:
-                self.send_json_response(400, {'success': False, 'error': 'Invalid JSON'})
-                return
-            
-            message = data.get('message', '').strip()
-            api_key = data.get('apiKey', '').strip()
-            model = data.get('model', 'deepseek-ai/DeepSeek-R1')
-            temperature = data.get('temperature', 0.7)
-            
-            if not message:
-                self.send_json_response(400, {'success': False, 'error': 'Message is required'})
-                return
+                body = getattr(request, 'body', b'')
+                if isinstance(body, bytes):
+                    body = body.decode('utf-8')
                 
-            if not api_key:
-                self.send_json_response(400, {'success': False, 'error': 'API key is required'})
-                return
-            
-            # Call Hugging Face API
-            try:
+                data = json.loads(body) if body else {}
+                key = data.get('key', '').strip()
+                msg = data.get('msg', '').strip()
+                model = data.get('model', 'gpt2')
+                
+                if not key or not msg:
+                    return {
+                        'statusCode': 400,
+                        'headers': {'Content-Type': 'application/json'},
+                        'body': json.dumps({'success': False, 'error': 'Missing key or message'})
+                    }
+                
+                # Simple API call
                 import requests
                 
-                headers = {'Authorization': f'Bearer {api_key}'}
-                payload = {
-                    'inputs': message,
-                    'parameters': {
-                        'max_length': 2048,
-                        'temperature': temperature,
-                        'do_sample': True,
-                        'top_p': 0.9,
-                        'return_full_text': False
-                    }
-                }
-                
-                response = requests.post(
-                    f'https://api-inference.huggingface.co/models/{model}',
-                    headers=headers,
-                    json=payload,
-                    timeout=30
-                )
-                
-                if response.status_code == 200:
-                    result = response.json()
-                    if isinstance(result, list) and len(result) > 0:
-                        generated_text = result[0].get('generated_text', '')
-                        # Clean up the response
-                        if generated_text.startswith(message):
-                            clean_response = generated_text[len(message):].strip()
+                try:
+                    resp = requests.post(
+                        f'https://api-inference.huggingface.co/models/{model}',
+                        headers={'Authorization': f'Bearer {key}'},
+                        json={'inputs': msg, 'parameters': {'max_length': 200}},
+                        timeout=20
+                    )
+                    
+                    if resp.status_code == 200:
+                        result = resp.json()
+                        text = result[0].get('generated_text', '') if result else ''
+                        if text.startswith(msg):
+                            text = text[len(msg):].strip()
                         else:
-                            clean_response = generated_text.strip()
+                            text = text.strip()
                         
-                        response_data = {'success': True, 'response': clean_response}
+                        return {
+                            'statusCode': 200,
+                            'headers': {'Content-Type': 'application/json'},
+                            'body': json.dumps({'success': True, 'response': text})
+                        }
                     else:
-                        response_data = {'success': False, 'error': 'No response generated'}
-                elif response.status_code == 401:
-                    response_data = {'success': False, 'error': 'Invalid API key'}
-                elif response.status_code == 503:
-                    response_data = {'success': False, 'error': 'Model is loading, please try again'}
-                else:
-                    response_data = {'success': False, 'error': f'API Error: {response.status_code} - {response.text[:200]}'}
-                
-            except requests.exceptions.Timeout:
-                response_data = {'success': False, 'error': 'Request timeout'}
+                        return {
+                            'statusCode': 200,
+                            'headers': {'Content-Type': 'application/json'},
+                            'body': json.dumps({'success': False, 'error': f'API Error: {resp.status_code}'})
+                        }
+                        
+                except Exception as e:
+                    return {
+                        'statusCode': 200,
+                        'headers': {'Content-Type': 'application/json'},
+                        'body': json.dumps({'success': False, 'error': str(e)})
+                    }
+                    
             except requests.exceptions.RequestException as e:
                 response_data = {'success': False, 'error': f'Network error: {str(e)}'}
             except Exception as e:

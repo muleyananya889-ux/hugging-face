@@ -1,18 +1,14 @@
 {
   "version": 2,
   "functions": {
-    "api/hello.py": {
+    "index.py": {
       "runtime": "python3.9"
     }
   },
   "routes": [
     {
-      "src": "/",
-      "dest": "/api/hello.py"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/api/hello.py"
+      "dest": "index.py"
     }
   ]
 }

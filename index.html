@@ -2,194 +2,125 @@
 <html>
 
 <head>
-    <title>HF Assistant - Working</title>
+    <title>HF Chat - Simple</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #f0f0f0;
             margin: 0;
             padding: 20px;
-            min-height: 100vh;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 500px;
             margin: 0 auto;
             background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         input,
-        select,
         button {
             padding: 10px;
             margin: 5px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             font-size: 14px;
         }
 
-        input[type="password"] {
-            width: 100%;
-        }
-
-        select {
-            width: 100%;
-        }
-
         button {
-            background: #667eea;
+            background: #007bff;
             color: white;
             border: none;
             cursor: pointer;
-            transition: background 0.3s;
         }
 
         button:hover {
-            background: #5a6fd8;
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
+            background: #0056b3;
         }
 
         #chat {
-            height: 400px;
+            height: 300px;
             border: 1px solid #ddd;
-            padding: 15px;
+            padding: 10px;
             overflow-y: auto;
-            margin: 15px 0;
-            background: #f9f9f9;
-            border-radius: 5px;
+            margin: 10px 0;
+            background: #fafafa;
         }
 
         .msg {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 8px;
-            max-width: 80%;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
         }
 
         .user {
             background: #e3f2fd;
-            margin-left: auto;
             text-align: right;
         }
 
         .bot {
-            background: #f3e5f5;
-            margin-right: auto;
+            background: #f8f9fa;
         }
 
         .loading {
             color: #666;
             font-style: italic;
         }
-
-        h2 {
-            color: #667eea;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .success {
-            color: #4CAF50;
-            text-align: center;
-            padding: 10px;
-            background: #e8f5e8;
-            border-radius: 5px;
-            margin: 10px 0;
-        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h2>🤖 Hugging Face AI Assistant</h2>
+        <h2>🤖 Hugging Face Chat</h2>
 
-        <div class="success">
-            ✅ Deployment Successful! This app is working on Vercel.
-        </div>
-
-        <input type="password" id="key" placeholder="🔑 Enter your Hugging Face API Key">
-
-        <select id="model">
-            <option value="gpt2">🤖 GPT-2</option>
-            <option value="deepseek-ai/DeepSeek-R1">🧠 DeepSeek-R1</option>
-            <option value="microsoft/DialoGPT-medium">💬 DialoGPT Medium</option>
-        </select>
+        <input type="password" id="key" placeholder="Enter API Key" style="width: 100%">
+        <input type="text" id="msg" placeholder="Type message..." style="width: 75%">
+        <button onclick="send()">Send</button>
 
         <div id="chat">
-            <div style="text-align: center; color: #666; padding: 40px;">
-                👋 Welcome! Enter your API key and start chatting with AI
+            <div style="text-align: center; color: #666; padding: 20px;">
+                Enter API key and start chatting
             </div>
         </div>
 
-        <div>
-            <input type="text" id="msg" placeholder="💭 Type your message here..." style="width: 75%;">
-            <button onclick="send()" id="sendBtn">🚀 Send</button>
-        </div>
-
-        <div style="text-align: center; margin-top: 15px;">
-            <button onclick="clearChat()" style="background: #666;">🗑️ Clear Chat</button>
-        </div>
-
-        <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #666;">
-            Need an API key? Get one at <a href="https://huggingface.co/settings/tokens" target="_blank"
-                style="color: #667eea;">Hugging Face</a>
+        <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+            Get API key: <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face</a>
         </div>
     </div>
 
     <script>
-        let isLoading = false;
-
-        document.getElementById('msg').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter' && !isLoading) {
-                send();
-            }
-        });
-
         async function send() {
-            if (isLoading) return;
-
             const key = document.getElementById('key').value;
             const msg = document.getElementById('msg').value.trim();
-            const model = document.getElementById('model').value;
 
             if (!key || !msg) {
-                alert('⚠️ Please enter both API key and message');
+                alert('Please enter API key and message');
                 return;
             }
 
-            isLoading = true;
-            document.getElementById('sendBtn').disabled = true;
-
             const chat = document.getElementById('chat');
 
-            const welcome = chat.querySelector('div[style*="text-align: center"]');
-            if (welcome) welcome.remove();
-
+            // Add user message
             const userMsg = document.createElement('div');
             userMsg.className = 'msg user';
-            userMsg.innerHTML = '<strong>👤 You:</strong> ' + msg;
+            userMsg.textContent = 'You: ' + msg;
             chat.appendChild(userMsg);
 
+            // Clear input
             document.getElementById('msg').value = '';
 
+            // Show loading
             const loading = document.createElement('div');
             loading.className = 'msg bot loading';
-            loading.innerHTML = '<strong>🤔 AI is thinking...</strong>';
+            loading.textContent = 'AI is thinking...';
             chat.appendChild(loading);
 
-            chat.scrollTop = chat.scrollHeight;
-
             try {
-                const response = await fetch('https://api-inference.huggingface.co/models/' + model, {
+                const response = await fetch('https://api-inference.huggingface.co/models/gpt2', {
                     method: 'POST',
                     headers: {
                         'Authorization': 'Bearer ' + key,
@@ -197,10 +128,7 @@
                     },
                     body: JSON.stringify({
                         inputs: msg,
-                        parameters: {
-                            max_length: 300,
-                            temperature: 0.7
-                        }
+                        parameters: { max_length: 100 }
                     })
                 });
 
@@ -217,32 +145,33 @@
 
                     const botMsg = document.createElement('div');
                     botMsg.className = 'msg bot';
-                    botMsg.innerHTML = '<strong>🤖 Assistant:</strong> ' + text;
+                    botMsg.textContent = 'AI: ' + text;
                     chat.appendChild(botMsg);
                 } else {
                     const errorMsg = document.createElement('div');
                     errorMsg.className = 'msg bot';
-                    errorMsg.innerHTML = '<strong>❌ Error:</strong> ' + (data.error || 'API request failed');
+                    errorMsg.textContent = 'Error: ' + (data.error || 'API failed');
                     chat.appendChild(errorMsg);
                 }
+
+                chat.scrollTop = chat.scrollHeight;
 
             } catch (err) {
                 loading.remove();
                 const netError = document.createElement('div');
                 netError.className = 'msg bot';
-                netError.innerHTML = '<strong>🌐 Network Error:</strong> ' + err.message;
+                netError.textContent = 'Network Error: ' + err.message;
                 chat.appendChild(netError);
-            } finally {
-                isLoading = false;
-                document.getElementById('sendBtn').disabled = false;
                 chat.scrollTop = chat.scrollHeight;
             }
         }
 
-        function clearChat() {
-            const chat = document.getElementById('chat');
-            chat.innerHTML = '<div style="text-align: center; color: #666; padding: 40px;">👋 Welcome! Enter your API key and start chatting with AI</div>';
-        }
+        // Enter key to send
+        document.getElementById('msg').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                send();
+            }
+        });
     </script>
 </body>
 

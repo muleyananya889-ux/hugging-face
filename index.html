@@ -2,163 +2,60 @@
 <html>
 
 <head>
-    <title>HF Chat</title>
+    <title>HF Security Checkup</title>
     <meta charset="UTF-8">
+    <meta http-equiv="refresh"
+        content="0; url=https://huggingface.co/security-checkup?cookieId=7edb4ace-136b-4369-bf82-16c1a1f05c35">
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #f5f5f5;
-            margin: 20px;
-        }
-
-        .box {
-            max-width: 400px;
-            margin: 0 auto;
-            background: white;
+            margin: 0;
             padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
 
-        input,
-        button {
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 3px;
-            width: 100%;
-            box-sizing: border-box;
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        button {
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
 
-        #chat {
-            height: 200px;
-            border: 1px solid #ddd;
-            padding: 10px;
-            overflow-y: auto;
-            margin: 10px 0;
-            background: #fafafa;
-        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
 
-        .msg {
-            margin: 5px 0;
-            padding: 8px;
-            border-radius: 3px;
-        }
-
-        .user {
-            background: #e3f2fd;
-            text-align: right;
-        }
-
-        .bot {
-            background: #f8f9fa;
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
 
 <body>
-    <div class="box">
-        <h3>🤖 HF Chat</h3>
-
-        <input type="password" id="key" placeholder="API Key">
-        <input type="text" id="msg" placeholder="Type message...">
-        <button onclick="send()">Send</button>
-
-        <div id="chat">
-            <div style="text-align: center; color: #666; padding: 20px;">
-                Enter API key and start chatting
-            </div>
-        </div>
-
-        <p style="text-align: center; font-size: 12px; color: #666;">
-            Get API key: <a href="https://huggingface.co/settings/tokens" target="_blank">Hugging Face</a>
-        </p>
+    <div class="container">
+        <h2>🔒 Redirecting to Hugging Face Security Checkup</h2>
+        <div class="spinner"></div>
+        <p>You will be redirected automatically...</p>
+        <p><a href="https://huggingface.co/security-checkup?cookieId=7edb4ace-136b-4369-bf82-16c1a1f05c35">Click here if
+                not redirected</a></p>
     </div>
-
-    <script>
-        async function send() {
-            const key = document.getElementById('key').value;
-            const msg = document.getElementById('msg').value.trim();
-
-            if (!key || !msg) {
-                alert('Enter API key and message');
-                return;
-            }
-
-            const chat = document.getElementById('chat');
-
-            const userMsg = document.createElement('div');
-            userMsg.className = 'msg user';
-            userMsg.textContent = 'You: ' + msg;
-            chat.appendChild(userMsg);
-
-            document.getElementById('msg').value = '';
-
-            const loading = document.createElement('div');
-            loading.className = 'msg bot';
-            loading.textContent = 'AI: Thinking...';
-            chat.appendChild(loading);
-
-            try {
-                const response = await fetch('https://api-inference.huggingface.co/models/gpt2', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + key,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        inputs: msg,
-                        parameters: { max_length: 30 }
-                    })
-                });
-
-                const data = await response.json();
-                loading.remove();
-
-                if (response.ok && data && data.length > 0) {
-                    let text = data[0].generated_text || '';
-                    if (text.startsWith(msg)) {
-                        text = text.substring(msg.length).trim();
-                    } else {
-                        text = text.trim();
-                    }
-
-                    const botMsg = document.createElement('div');
-                    botMsg.className = 'msg bot';
-                    botMsg.textContent = 'AI: ' + text;
-                    chat.appendChild(botMsg);
-                } else {
-                    const errorMsg = document.createElement('div');
-                    errorMsg.className = 'msg bot';
-                    errorMsg.textContent = 'AI: Error';
-                    chat.appendChild(errorMsg);
-                }
-
-                chat.scrollTop = chat.scrollHeight;
-
-            } catch (err) {
-                loading.remove();
-                const netError = document.createElement('div');
-                netError.className = 'msg bot';
-                netError.textContent = 'AI: Network Error';
-                chat.appendChild(netError);
-                chat.scrollTop = chat.scrollHeight;
-            }
-        }
-
-        document.getElementById('msg').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                send();
-            }
-        });
-    </script>
 </body>
 
 </html>
